@@ -3,6 +3,12 @@
         $old_parameters = json_decode($dataTypeContent->{$row->field});
     }
     $end_id = 0;
+
+    if (is_field_translatable($dataTypeContent, $row)) {
+        // $translate_json = get_field_translations($dataTypeContent, $row->field, $row->type, true);
+        //  dd(json_decode($translate_json));
+        $isFieldTranslatable = true;
+    }
 @endphp
 
 
@@ -78,6 +84,61 @@
     for (var i = 0; i < buttons.length; i++) buttons[i].onclick = removeRow;
     var suc_buttons = document.querySelectorAll('.custom-parameters .btn-success');
     suc_buttons[suc_buttons.length - 1].onclick = addRow;
+
+    
+    
+    
+    // Multilanguage support
+    @if ($isFieldTranslatable)
+    document.querySelector(".js-language-label").addEventListener("DOMNodeInserted", function(){ 
+        $(document).ready(function () {
+            var ml = $('.side-body').data(),
+                current_lang = $(".js-language-label").first().text(),
+                current_translation = JSON.parse($('#{{$row->field}}_i18n').attr('value')),
+                parse_translation = JSON.parse(eval('current_translation.'+current_lang));
+
+            ml.multilingual.settings.editing = false
+
+            // remove input from multilangual.js plugin
+            for (let i = 0; i < ml.multilingual.transInputs.length; i++) {
+                if(ml.multilingual.transInputs[i].id.substring(0,ml.multilingual.transInputs[i].id.indexOf('_')) == '{{$row->field}}'){
+                    ml.multilingual.transInputs.splice(i, 1);
+                }
+            }
+
+            console.log(current_lang);
+            console.log(current_translation);
+            console.log(parse_translation[0].key);
+
+            $(".custom-parameters .row").each(function(i) {
+                if(typeof(parse_translation[i]) != "undefined" && parse_translation[i] !== null) {
+                    console.log(i);
+                    $("input[name~='{{$row->field}}["+i+"][key]']").val(parse_translation[i].key);
+                    $("input[name~='{{$row->field}}["+i+"][value]']").val(parse_translation[i].value);
+                }
+                
+            });
+
+
+
+            $(".custom-parameters input").change(function() {
+                var id = $(this).parent().parent().attr('row-id')
+                if($(this).is('#key')){
+                    parse_translation[id].key = $(this).val();
+                }else if($(this).is('#value')){
+                    parse_translation[id].value = $(this).val();
+                }
+                console.log($(this).val());
+                console.log(parse_translation);
+                current_translation[current_lang] = JSON.stringify(parse_translation);
+                $('#{{$row->field}}_i18n').attr('value', JSON.stringify(current_translation));
+            });
+
+        });
+
+    });
+    @endif
+
     
 </script>
 
