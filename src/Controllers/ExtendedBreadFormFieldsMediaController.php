@@ -35,7 +35,6 @@ class ExtendedBreadFormFieldsMediaController extends VoyagerMediaController
     
                 // Load model and find record
                 $model = app($dataType->model_name);
-
                 $data = $model::find([$id])->first();
     
                 // Check if field exists
