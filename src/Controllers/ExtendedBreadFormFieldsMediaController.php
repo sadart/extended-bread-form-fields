@@ -30,10 +30,12 @@ class ExtendedBreadFormFieldsMediaController extends VoyagerMediaController
                 $dataType = Voyager::model('DataType')->where('slug', '=', $slug)->first();
     
                 // Check permission
-                Voyager::canOrFail('delete_'.$dataType->name);
+                // Voyager::canOrFail('delete_'.$dataType->name);
+                auth()->user()->can('delete', app($dataType->model_name));
     
                 // Load model and find record
                 $model = app($dataType->model_name);
+
                 $data = $model::find([$id])->first();
     
                 // Check if field exists
@@ -59,6 +61,7 @@ class ExtendedBreadFormFieldsMediaController extends VoyagerMediaController
                 // Remove image from array
                 unset($fieldData[$founded]);
     
+                // print_r($field);
                 // Generate json and update field
                 $data->{$field} = json_encode($fieldData);
                 $data->save();
